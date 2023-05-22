@@ -1,16 +1,64 @@
 ---
 title: "Bootstrapping basics"
 author: "Michael Love"
-format: beamer
+format: 
+  beamer:
+    fig-width: 5
+    fig-height: 3
 execute:
   echo: true
+  cache: true
 ---
 
 # sampling variance
 
-some words
+```{r echo=FALSE}
+library(mvtnorm)
+set.seed(1)
+n <- 100
+mat <- rmvnorm(n,mean=c(0,0),sigma=cbind(c(1,.5),c(.5,1)))
+pop <- data.frame(x=mat[,1], y=mat[,2], 
+                  color=factor(sample(8,n,TRUE)),
+                  shape=sample(16:25,n,TRUE))
+little_n <- 20
+idx <- sample(n,little_n,FALSE)
+dat <- rbind(pop, pop[idx,])
+dat$type <- rep(c("population","sample"),c(n,little_n))
+library(ggplot2)
+ggplot(dat, aes(x,y,color=color,fill=color,shape=shape)) +
+  geom_point(size=3, show.legend=FALSE) + 
+  scale_shape_identity() +
+  facet_wrap(~type)
+```
 
-# no access to full "population"
+# or when there is not a "population"
+
+```{r echo=FALSE}
+grid <- expand.grid(x=-200:200/100,y=-200:200/100)
+grid$density <- dmvnorm(grid, mean=c(0,0), sigma=cbind(c(1,.5),c(.5,1)))
+dat$density <- dmvnorm(dat[,1:2], mean=c(0,0), sigma=cbind(c(1,.5),c(.5,1)))
+ggplot(grid, aes(x,y,z=density)) + 
+  geom_contour() + 
+  geom_point(data=dat[(n+1):(n+little_n),], 
+             aes(color=color,fill=color,shape=shape),
+             size=3, show.legend=FALSE) + 
+  scale_shape_identity()
+```
+
+# estimate a parameter
+
+```{r echo=FALSE}
+nreps <- 10
+samples <- do.call(rbind, replicate(nreps, { 
+  pop[sample(n,little_n,FALSE),]
+}, simplify = FALSE))
+samples$sample <- factor(rep(1:nreps, each=little_n))
+fit <- coef(lm(y ~ x, data=dat[1:n,]))
+ggplot(samples, aes(x,y,group=sample,color=sample)) +
+  geom_point(size=3, show.legend=FALSE, alpha=.25) + 
+  stat_smooth(method="lm", se=FALSE) + 
+  geom_abline(slope=fit[2], intercept=fit[1], lty=2)
+```
 
 # idea: sub-sampling a sample
 
