@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+bootstrapping_files
+*.pdf

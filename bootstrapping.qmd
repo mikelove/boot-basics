@@ -2,17 +2,21 @@
 title: "Bootstrapping basics"
 author: "Michael Love"
 format: beamer
+execute:
+  echo: true
 ---
 
-## sampling variance
+# sampling variance
 
-## no access to full "population"
+some words
 
-## idea: sub-sampling a sample
+# no access to full "population"
 
-## three types of bootstrapping
+# idea: sub-sampling a sample
 
-## example: line with non-normal errors
+# three types of bootstrapping
+
+# example: line with non-normal errors
 
 ```{r}
 library(dplyr)
@@ -30,7 +34,7 @@ abline(0, slope, col="red")
 dat <- data.frame(x,y)
 ```
 
-## simple bootstrapping
+# simple bootstrapping
 
 ```{r}
 set.seed(1)
@@ -42,24 +46,32 @@ hist(boots)
 sd(boots)
 ```
 
-## using `boot`
+# using `boot`
 
 ```{r}
 library(boot)
-get_slope <- function(data, idx) coef(lm(y ~ x, data=data[idx,]))[2]
-boots <- boot(dat, get_slope, R=1000)
-boots
-confint(boots)
-hist(boots)
+get_slope <- function(data, idx) {
+  coef(lm(y ~ x, data=data[idx,]))[2]
+}
+boots2 <- boot(dat, get_slope, R=1000)
+boots2
+plot(boots2)
 ```
 
-## {infer} package
+# additional plots
+
+```{r}
+library(car)
+confint(boots2)
+hist(boots2)
+```
+
+# {infer} package
 
 S, H, G, C =
 Specify, Hypothesize, Generate, Calculate
 
-```{r}
-#| eval=FALSe
+```{r eval=FALSE}
 set.seed(1)
 perm <- dat %>% specify(y ~ x) %>%
   hypothesize(null="independence") %>%
@@ -67,7 +79,7 @@ perm <- dat %>% specify(y ~ x) %>%
   calculate(stat="slope")
 ```
 
-## bootstrapping a statistic
+# bootstrapping a statistic
 
 ```{r}
 set.seed(1)
@@ -77,31 +89,42 @@ boot <- dat %>% specify(y ~ x) %>%
 visualize(boot, bins=30)
 ```
 
-## confidence intervals
+# confidence intervals
 
 ```{r}
 ci <- get_ci(boot)
 ci
-visualize(boot, bins=30) +
-  shade_confidence_interval(ci, alpha=.3, fill="yellow", color="orange") + 
-  geom_vline(xintercept=obs_beta$stat, color="orange")
+obs_beta <- dat %>% 
+  specify(y ~ x) %>%
+  calculate(stat="slope")
 ```
 
-## versus lm
+# visualize
+
+```{r}
+visualize(boot, bins=30) +
+  shade_confidence_interval(ci, alpha=.3, 
+                            fill="yellow", color="orange") + 
+  geom_vline(xintercept=obs_beta$stat, 
+             color="red", linewidth=1)
+```
+
+# versus lm
 
 ```{r}
 ci
 confint(lm(y ~ x), parm="x")
 ```
 
-## going further
+# going further
 
-[Bootstrapping Regression Models in R](https://socialsciences.mcmaster.ca/jfox/Books/Companion/appendices/Appendix-Bootstrapping.pdf)
-
+> Bootstrapping Regression Models in R
 > An Appendix to An R Companion to Applied Regression, 3rd ed.
 > John Fox & Sanford Weisberg
 
-## Fox and Weisberg example
+(can find PDF online)
+
+# Fox and Weisberg example
 
 ```{r}
 library(car)
