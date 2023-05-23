@@ -36,8 +36,10 @@ ggplot(dat, aes(x,y,color=color,fill=color,shape=shape)) +
 
 ```{r echo=FALSE}
 grid <- expand.grid(x=-200:200/100,y=-200:200/100)
-grid$density <- dmvnorm(grid, mean=c(0,0), sigma=cbind(c(1,.5),c(.5,1)))
-dat$density <- dmvnorm(dat[,1:2], mean=c(0,0), sigma=cbind(c(1,.5),c(.5,1)))
+grid$density <- dmvnorm(grid, mean=c(0,0), 
+                        sigma=cbind(c(1,.5),c(.5,1)))
+dat$density <- dmvnorm(dat[,1:2], mean=c(0,0), 
+                       sigma=cbind(c(1,.5),c(.5,1)))
 ggplot(grid, aes(x,y,z=density)) + 
   geom_contour() + 
   geom_point(data=dat[(n+1):(n+little_n),], 
@@ -61,6 +63,11 @@ ggplot(samples, aes(x,y,group=sample,color=sample)) +
   geom_abline(slope=fit[2], intercept=fit[1], lty=2)
 ```
 
+# sampling variance $\rightarrow$ parameter estimation
+
+\huge How can we assess the effect of sampling variance 
+on parameter estimates?
+
 # idea: sub-sampling a sample
 
 ```{r echo=FALSE}
@@ -75,15 +82,68 @@ ggplot(dat2, aes(x,y,color=color,fill=color,shape=shape)) +
   facet_wrap(~type)
 ```
 
+what is good about the sub-sample? what is a problem?
+
+# idea of bootstrap
+
+* instead of sub-sample, take a sample of the same size
+* sample each observation, then put it back ("with replacement")
+
+\vspace{1em}
+
+```{r echo=FALSE, out.width="50%", fig.align="center"}
+set.seed(5)
+toy <- data.frame(x=1:8,y=rep(2:1,each=8),
+                  color=factor(c(1:8,sort(sample(8,8,TRUE)))))
+ggplot(toy, aes(x,y,color=color)) +
+  geom_point(size=8,show.legend = FALSE) + 
+  theme_void() + 
+  ylim(0,3)
+```
+
 # idea of bootstrap
 
 | Real World          | Bootstrap World           |
 |---------------------|---------------------------|
-| $P \rightarrow X$   | $\hat{P} \rightarrow X^*$ |
-| $\hat\theta = f(X)$ | $\hat{\theta}^* = f(X^*)$ |
+| $P \rightarrow X_n$   | $\widehat{P}_n \rightarrow X^*_n$ |
+| $\hat\theta_n = f(X_n)$ | $\hat\theta^*_n = f(X^*_n)$ |
 
 from "Introduction to the Bootstrap"
 Efron & Tibshirani (1993)
+
+# often used for the variance of an estimator
+
+From Yen-Chi Chen (UW) notes:
+
+* Sample $X^{*(1)}_n, X^{*(2)}_n, \dots, X^{*(B)}_n$
+* Obtain $\hat\theta^{*(1)}_n, \hat\theta^{*(2)}_n, \dots, \hat\theta^{*(B)}_n$
+* Sample variance of these bootstrap estimates = $\widehat{\textrm{Var}}_B(\hat\theta^*_n)$
+
+Want: 
+
+$$
+\widehat{\textrm{Var}}_B(\hat\theta^*_n) \approx \textrm{Var}(\hat\theta_n)
+$$
+
+# consistency of the bootstrap variance
+
+From Yen-Chi Chen (UW) notes:
+
+Want: $\widehat{\textrm{Var}}_B(\hat\theta^*_n) \approx \textrm{Var}(\hat\theta_n)$
+
+For large B, we have: 
+
+$$
+\widehat{\textrm{Var}}_B(\hat\theta^*_n) \approx 
+\textrm{Var}(\hat\theta^*_n|\widehat{P}_n)
+$$
+
+Need to show: 
+
+$$
+\textrm{Var}(\hat\theta^*_n|\widehat{P}_n) \approx 
+\textrm{Var}(\hat\theta_n)
+$$
 
 # three types of bootstrapping
 
