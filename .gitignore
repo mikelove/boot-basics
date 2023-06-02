@@ -4,4 +4,4 @@
 .Ruserdata
 bootstrapping_files
 bootstrapping_cache
-*.pdf
+.DS_Store
